@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# vs code data
+.vscode/
+
+# c++ build and data
+build/
+*.csv
