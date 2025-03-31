@@ -18,7 +18,6 @@ class LinearSolver {
         Matrix L(n, n);
 
         for (size_t k = 0; k < n; ++k) {
-            // Вычисляем диагональный элемент
             double sum = 0.0;
             for (size_t p = 0; p < k; ++p)
                 sum += L(k, p) * L(k, p);
@@ -77,7 +76,7 @@ public:
         for (int i = n - 1; i >= 0; --i) {
             double sum = 0.0;
             for (size_t j = i + 1; j < n; ++j)
-                sum += L(j, i) * x(j, 0); // L(j, i) — элемент транспонированной матрицы L^T
+                sum += L(j, i) * x(j, 0);
             x(i, 0) = (y(i, 0) - sum) / L(i, i);
         }
 

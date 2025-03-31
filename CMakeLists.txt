@@ -9,4 +9,3 @@ set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
 add_compile_definitions(PROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 add_executable(${PROJECT_NAME} src/main.cpp)
-add_executable(test_solver src/test_solver.cpp)

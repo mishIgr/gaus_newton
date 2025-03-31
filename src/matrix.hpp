@@ -29,7 +29,7 @@ public:
         return I;
     }
 
-    Matrix(size_t rows, size_t cols) : row(rows), col(cols), matrix(rows * cols) {}
+    Matrix(size_t rows, size_t cols) : row(rows), col(cols), matrix(rows * cols, 0) {}
 
     const long double &operator()(size_t i, size_t j) const {
         if (i >= row || j >= col)
@@ -39,6 +39,9 @@ public:
     }
 
     long double &operator()(size_t i, size_t j) {
+        if (i >= row || j >= col)
+            throw std::out_of_range("Index out of range");
+
         return matrix[i * col + j];
     }
 
@@ -46,7 +49,7 @@ public:
 
     size_t cols() const { return col; }
 
-    void setToZero() {
+    void set_zero() {
         for (auto &el : matrix)
             el = 0;
     }
@@ -75,6 +78,30 @@ public:
         return (*this);
     }
 
+    Matrix operator-(const Matrix &other) const {
+        Matrix M(row, col);
+
+        if (row != other.row || col != other.col)
+            throw std::invalid_argument("Размер матриц не подходит для сложения");
+
+        for (size_t i = 0; i < row; ++i)
+            for (size_t j = 0; j < col; ++j)
+                M(i, j) = (*this)(i, j) - other(i, j);
+
+        return M;
+    }
+
+    Matrix &sub(const Matrix &other) {
+        if (row != other.row || col != other.col)
+            throw std::invalid_argument("Размер матриц не подходит для сложения");
+
+        for (size_t i = 0; i < row; ++i)
+            for (size_t j = 0; j < col; ++j)
+                (*this)(i, j) -= other(i, j);
+
+        return (*this);
+    }
+
     Matrix operator*(long double n) const {
         Matrix M(row, col);
         for (size_t i = 0; i < row; ++i)
@@ -90,10 +117,10 @@ public:
     }
 
     Matrix operator*(const Matrix &other) const {
-        Matrix M(row, col);
-
         if (col != other.row)
             throw std::invalid_argument("Размер матриц не подходит для умножения");
+        
+        Matrix M(row, other.col);
 
         for (size_t i = 0; i < row; i++)
             for (size_t j = 0; j < other.col; j++)
@@ -113,7 +140,7 @@ public:
     }
 
     Matrix transpose() const {
-        Matrix M(row, col);
+        Matrix M(col, row);
 
         for (size_t i = 0; i < row; i++)
             for (size_t j = 0; j < col; j++)
@@ -122,13 +149,13 @@ public:
         return M;
     }
 
-    bool operator==(const Matrix &other) const {
+    bool equal(const Matrix &other, double sub) const {
         if (row != other.row || col != other.col)
             return false;
         
         for (size_t i = 0; i < row; ++i)
             for (size_t j = 0; j < col; ++j)
-                if ((*this)(i, j) != other(i, j))
+                if (abs((*this)(i, j) - other(i, j)) > sub)
                     return false;
         
         return true;

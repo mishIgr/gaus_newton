@@ -4,26 +4,116 @@
 #include "matrix.hpp"
 #include <iostream>
 #include <vector>
+#include <functional>
 
-// Функция для вычисления правых частей системы
-Matrix computeDerivatives(const Matrix& state, double k1, double k2, double m1, double m2, double l1, double l2) {
-    Matrix derivatives(4, 1); // Вектор производных [dx1/dt, dv1/dt, dx2/dt, dv2/dt]
+Matrix compute_derivatives_into_deviations(const Matrix& state, const Matrix& const_state) {
+    Matrix derivatives(24, 1);
+    /*
+    [
+        dx1/dt, dv1/dt, dx2/dt, dv2/dt, dx1/dx1, dv1/dx1, dx2/dx1, dv2/dx1, 
+        dx1/dv1, dv1/dv1, dx2/dv1, dv2/dv1, dx1/dx2, dv1/dx2, dx2/dx2, dv2/dx2,
+        dx1/dv2, dv1/dv2, dx2/dv2, dv2/dv2, dx1/dm1, dv1/dm1, dx2/dm1, dv2/dm1
+    ]
+    */
+
+    double k1 = const_state(0, 0);
+    double k2 = const_state(1, 0);
+    double m1 = const_state(2, 0);
+    double m2 = const_state(3, 0);
+    double l1 = const_state(4, 0);
+    double l2 = const_state(5, 0);
+
+    double dx1dt = state(0, 0);
+    double dv1dt = state(1, 0);
+    double dx2dt = state(2, 0);
+    double dv2dt = state(3, 0);
+    double dx1dx1 = state(4, 0);
+    double dv1dx1 = state(5, 0);
+    double dx2dx1 = state(6, 0);
+    double dv2dx1 = state(7, 0);
+    double dx1dv1 = state(8, 0);
+    double dv1dv1 = state(9, 0);
+    double dx2dv1 = state(10, 0);
+    double dv2dv1 = state(11, 0);
+    double dx1dx2 = state(12, 0);
+    double dv1dx2 = state(13, 0);
+    double dx2dx2 = state(14, 0);
+    double dv2dx2 = state(15, 0);
+    double dx1dv2 = state(16, 0);
+    double dv1dv2 = state(17, 0);
+    double dx2dv2 = state(18, 0);
+    double dv2dv2 = state(19, 0);
+    double dx1dm1 = state(20, 0);
+    double dv1dm1 = state(21, 0);
+    double dx2dm1 = state(22, 0);
+    double dv2dm1 = state(23, 0);
+
+
+    double _dv1dx1 = -(k1 / m1 + k2 / m1);
+    double _dv1dx2 = k2 / m1;
+    double _dv1dm1 = k1 * (dx1dt - l1) / (m1 * m1) - k2 * (dx2dt - dx1dt - l2) / (m1 * m1);
+
+    double _dv2dx1 = k2 / m2;
+    double _dv2dx2 = -_dv2dx1;
+    
+
+    derivatives(0, 0) = dv1dt;
+    derivatives(1, 0) = -k1 / m1 * (dx1dt - l1) + k2 / m1 * (dx2dt - dx1dt - l2);
+    derivatives(2, 0) = dv2dt;
+    derivatives(3, 0) = -k2 / m2 * (dx2dt - dx1dt - l2);
+
+    derivatives(4, 0) = dv1dx1;
+    derivatives(5, 0) = _dv1dx1 + _dv1dx2 * dx2dx1;
+    derivatives(6, 0) = dv2dx1;
+    derivatives(7, 0) = _dv2dx1 + _dv2dx2 * dx2dx1;
+
+    derivatives(8, 0) = dv1dv1;
+    derivatives(9, 0) = _dv1dx1 * dx1dv1 + _dv1dx2 * dx2dv1;
+    derivatives(10, 0) = dv2dv1;
+    derivatives(11, 0) = _dv2dx1 * dx1dv1 + _dv2dx2 * dx2dv1;
+
+    derivatives(12, 0) = dv1dx2;
+    derivatives(13, 0) = _dv1dx2 + _dv1dx1 * dx1dx2;
+    derivatives(14, 0) = dv2dx2;
+    derivatives(15, 0) = _dv2dx2 + _dv2dx1 * dx1dx2;
+
+    derivatives(16, 0) = dv1dv2;
+    derivatives(17, 0) = _dv1dx1 * dx1dv2 + _dv1dx2 * dx2dv2;
+    derivatives(18, 0) = dv2dv2;
+    derivatives(19, 0) = _dv2dx1 * dx1dv2 + _dv2dx2 * dx2dv2;
+    
+    derivatives(20, 0) = dv1dm1;
+    derivatives(21, 0) = _dv1dm1 + _dv1dx1 * dx1dm1 + _dv1dx2 * dx2dm1;
+    derivatives(22, 0) = dv2dm1;
+    derivatives(23, 0) = _dv2dx1 * dx1dm1 + _dv2dx2 * dx2dm1;
+
+    return derivatives;
+}
+
+Matrix compute_derivatives(const Matrix& state, const Matrix& const_state) {
+    Matrix derivatives(4, 1); // [dx1/dt, dv1/dt, dx2/dt, dv2/dt]
 
     double x1 = state(0, 0);
     double v1 = state(1, 0);
     double x2 = state(2, 0);
     double v2 = state(3, 0);
 
+    double k1 = const_state(0, 0);
+    double k2 = const_state(1, 0);
+    double m1 = const_state(2, 0);
+    double m2 = const_state(3, 0);
+    double l1 = const_state(4, 0);
+    double l2 = const_state(5, 0);
+
     derivatives(0, 0) = v1;
-    derivatives(1, 0) = -k1 / m1 * (x1 - l1) + k2 / m2 * (x2 - x1 - l2);
+    derivatives(1, 0) = -k1 / m1 * (x1 - l1) + k2 / m1 * (x2 - x1 - l2);
     derivatives(2, 0) = v2;
     derivatives(3, 0) = -k2 / m2 * (x2 - x1 - l2);
 
     return derivatives;
 }
 
-// Метод Дормана-Принса 8-го порядка
-Matrix dormandPrince8(const Matrix& state, double h, double k1, double k2, double m1, double m2, double l1, double l2) {
+Matrix dormand_prince(std::function<Matrix(const Matrix&, const Matrix&)> derivative, const Matrix& state, const Matrix& const_state, double h) {
     const size_t stages = 13;
     const double a[stages][stages] = {
         {0},
@@ -45,20 +135,20 @@ Matrix dormandPrince8(const Matrix& state, double h, double k1, double k2, doubl
         35.0 / 384.0, 0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0
     };
 
-    std::vector<Matrix> k(stages, Matrix(4, 1));
+    std::vector<Matrix> k(stages, Matrix(state.rows(), 1));
 
     for (size_t i = 0; i < stages; ++i) {
-        Matrix sum(4, 1);
-        for (size_t j = 0; j < i; ++j) {
+        Matrix sum(state.rows(), 1);
+        for (size_t j = 0; j < i; ++j)
             sum.add(k[j] * a[i][j]);
-        }
-        k[i] = computeDerivatives(state + sum * h, k1, k2, m1, m2, l1, l2);
+        
+        k[i] = derivative(state + sum * h, const_state);
     }
 
     Matrix newState = state;
-    for (size_t i = 0; i < stages; ++i) {
+    for (size_t i = 0; i < stages; ++i)
         newState.add(k[i] * (b[i] * h));
-    }
+    
 
     return newState;
 }
