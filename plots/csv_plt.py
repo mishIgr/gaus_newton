@@ -11,8 +11,8 @@ def show_plt(csv_path):
     v2 = data['v2'].values
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xlim(min(min(x1), min(x2)) - 0.1, max(max(x1), max(x2)) + 0.1)
-    ax.set_ylim(min(min(v1), min(v2)) - 0.1, max(max(v1), max(v2)) + 0.1)
+    ax.set_xlim(min(min(x1), min(x2)) - 0.5, max(max(x1), max(x2)) + 0.5)
+    ax.set_ylim(min(min(v1), min(v2)) - 0.5, max(max(v1), max(v2)) + 0.5)
 
     block1, = ax.plot(x1, v1, 'bo', markersize=5, label='Грузик 1')
     block2, = ax.plot(x2, v2, 'ro', markersize=5, label='Грузик 2')

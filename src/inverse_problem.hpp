@@ -56,15 +56,13 @@ public:
         param(2, 0) = state(4, 0);
 
 
-        for (size_t i = 0; i < std::min(data.rows(), (size_t)400); ++i) {
+        for (size_t i = 0; i < data.rows(); ++i) {
             for (size_t j = 0; j < 4; ++j) {
                 for (size_t k = 0; k < 5; ++k)
                     partial_derivatives(k, 0) = tmp(j + 4 * k + 4, 0);
 
-                AtWA.add((partial_derivatives * partial_derivatives.transpose()).multiply(W));
-                AtWr.add(partial_derivatives.multiply(data(i, j) - tmp(j, 0)).multiply(W));
-                // std::cout << data(i, j) - tmp(j, 0) << std::endl;
-                // for (int p = 0; p < 1e9; ++p);
+                AtWA.add((partial_derivatives * partial_derivatives.transpose()).mul(W));
+                AtWr.add(partial_derivatives.mul(data(i, j) - tmp(j, 0)).mul(W));
             }
 
             tmp = dormand_prince(
@@ -73,14 +71,11 @@ public:
                 ),
                 tmp, param, h
             );
-            // std::cout << tmp << std::endl;
         }
 
 
         LinearSolver solver(AtWA, AtWA * state + AtWr);
         Matrix new_state = solver.solve();
-        // for (auto i : {2})
-        //     new_state(i, 0) = state(i, 0);
         return new_state;
     }
 

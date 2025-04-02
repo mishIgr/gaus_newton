@@ -110,7 +110,7 @@ public:
         return M;
     }
 
-    Matrix &multiply(long double n) {
+    Matrix &mul(long double n) {
         for (auto &el : matrix)
             el *= n;
         return *this;
@@ -130,7 +130,7 @@ public:
         return M;
     }
 
-    Matrix &multiply(const Matrix &other) {
+    Matrix &mul(const Matrix &other) {
         if (col != other.row)
             throw std::invalid_argument("Размер матриц не подходит для умножения");
 

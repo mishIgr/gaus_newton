@@ -74,58 +74,77 @@ public:
 };
 
 
-// class MatrixCSVRead {
+class MatrixCSVRead {
 
-//     std::ifstream file;
-//     std::string filename;
+    std::ifstream file;
+    std::string filename;
 
-// public:
+public:
 
-//     MatrixCSVRead(const std::string &filename) : file(std::ifstream(filename)), filename(filename) {}
+    MatrixCSVRead(const std::string &filename, bool in_project_dir = true) {
+        std::string project_dir;
 
-//     ~MatrixCSVRead() {
-//         if (file.is_open())
-//             file.close();
-//     }
+        if (in_project_dir) {
+            #ifdef PROJECT_SOURCE_DIR
+                project_dir = PROJECT_SOURCE_DIR;
+            #else
+                #warning "Макрос PROJECT_SOURCE_DIR не определен"
+                project_dir = "";
+            #endif
+        }
+        else
+            project_dir = "";
 
-//     MatrixCSVRead &operator>>(Matrix &matrix) {
-//         if (!file.is_open())
-//             throw std::runtime_error("Не удалось открыть файл для чтения: " + filename);
+        this->filename = project_dir + "/" + filename;
+        file = std::ifstream(this->filename);
+    }
 
-//         file.seekg(0, std::ios::beg);
+    ~MatrixCSVRead() {
+        if (file.is_open())
+            file.close();
+    }
 
-//         std::vector<std::vector<long double>> data;
-//         std::string line;
+    MatrixCSVRead &operator>>(Matrix &matrix) {
+        if (!file.is_open())
+            throw std::runtime_error("Не удалось открыть файл для чтения: " + filename);
 
-//         while (std::getline(file, line)) {
-//             std::vector<long double> row;
-//             std::stringstream ss(line);
-//             std::string value;
+        file.seekg(0, std::ios::beg);
 
-//             while (std::getline(ss, value, ',')) {
-//                 row.push_back(std::stold(value));
-//             }
+        std::vector<std::vector<long double>> data;
+        std::string headers;
+        std::getline(file, headers);
 
-//             data.push_back(row);
-//         }
+        std::string line;
 
-//         if (data.empty())
-//             throw std::runtime_error("Файл пуст или имеет неправильный формат: " + filename);
+        while (std::getline(file, line)) {
+            std::vector<long double> row;
+            std::stringstream ss(line);
+            std::string value;
+
+            while (std::getline(ss, value, ',')) {
+                row.push_back(std::stold(value));
+            }
+
+            data.push_back(row);
+        }
+
+        if (data.empty())
+            throw std::runtime_error("Файл пуст или имеет неправильный формат: " + filename);
 
 
-//         size_t rows = data.size();
-//         size_t cols = data[0].size();
+        size_t rows = data.size();
+        size_t cols = data[0].size();
 
-//         matrix = Matrix(rows, cols);
+        matrix = Matrix(rows, cols);
 
-//         for (size_t i = 0; i < rows; ++i) {
-//             for (size_t j = 0; j < cols; ++j) {
-//                 matrix(i, j) = data[i][j];
-//             }
-//         }
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                matrix(i, j) = data[i][j];
+            }
+        }
 
-//         return *this;
-//     }
-// };
+        return *this;
+    }
+};
 
 #endif
